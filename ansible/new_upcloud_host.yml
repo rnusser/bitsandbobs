@@ -1,0 +1,154 @@
+# Playbook to create new host in Upcloud
+
+
+# please populate variables in new-host/vars/main.yml IF NEEDED
+
+---
+- name: Info msg.
+  debug: msg = "Deploying host {{ inventory_hostname }} "
+
+- include_vars: ansible_passwords/upcloud/api.yml
+
+- include_vars: ansible_passwords/amazon/route53-api.yml
+  tags: dns
+
+
+- set_fact:
+    updiskname: "{{ inventory_hostname | regex_replace('(.*)\\.org\\.com', '\\1-os') }}" # eg: web-1-1-os
+    uphostname: "{{ inventory_hostname | regex_replace('(.*)\\.org\\.com', '\\1') }}"    # eg: web-1-1 
+    upppertitle: "{{ inventory_hostname |upper  }}"                                 # eg: WEB-1-1.ORG.COM
+
+- set_fact:
+    uptitle: "{{ upppertitle |regex_replace('(.*)\\.ORG\\.COM', '\\1 Production') }}"    # eg: WEB-1-1 Production" 
+
+# Set subdomain if there is a dot in hostanme
+- set_fact:
+    subdomain: "{{ uphostname | regex_replace('.*\\.(.*)', '\\1.') }}"
+  when:  '"." in uphostname'
+
+- set_fact:
+    subdomain: ""
+  when: subdomain is not defined
+
+- name: Show plans
+  debug:
+    var: plans
+
+- name: Prompt for plan
+  pause:
+    prompt: "Enter plan 1-4"
+  register: selected_plan
+
+- name: Show locations
+  debug:
+    var: locations
+
+- name: Prompt for location
+  pause:
+    prompt: "Enter location 1-6"
+  register: selected_location
+
+# upzone: 'fi-hel1'                    # See below
+# upplan: "1xCPU-1GB"                  # See below
+# upsize: '30'                         # Mandatory field although template says size is 100
+
+- name: Assign chosen Upcloud plan
+  set_fact:
+    upplan: "{{ item.value.upplan }}"
+    upsize: "{{ item.value.disk }}"
+  with_dict: "{{ plans }}"
+  when:
+    - item.key == {{ selected_plan.user_input }}
+
+- name: Assign chosen Upcloud location
+  set_fact:
+    upzone: "{{ item.value.upzone }}"
+  with_dict: "{{ locations }}"
+  when:
+    - item.key == {{ selected_location.user_input }}
+
+- name: Show variables
+  debug:
+    msg: "upzone: {{ upzone }}, upplan: {{ upplan }}, upsize: {{ upsize }}"
+
+- pause:
+    prompt: "Enter to continue..."
+
+
+- name: Create upcloud host
+  uri: 
+      url: "https://api.upcloud.com/1.2/server"
+      method: POST
+      force_basic_auth: 'yes'
+      status_code: '202'
+      HEADER_Content-Type: application/json
+      body_format: json
+      user: "{{ user }}"
+      password: "{{ password }}"
+      body:
+        server: 
+            zone: "{{ upzone }}"
+            title: "{{ uptitle }}"
+            hostname: "{{ inventory_hostname }}"
+            plan: "{{ upplan }}"
+            storage_devices: 
+                storage_device: 
+                      - action: "clone"
+                        title: "{{ updiskname }}"
+                        size: "{{ upsize }}"
+                        tier: "maxiops"
+                        storage: "01000000-0000-4000-8000-000050010300" # CentOS 7.0 template
+            boot_order: "disk"
+            login_user:
+                username: "ansible"
+                ssh_keys:
+                  ssh_key: "ssh-rsa xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  register: result
+
+- set_fact:
+    newprivip: "{{item.address}}"
+  with_items: "{{result|json_query('json.server.ip_addresses.ip_address[*]')}}"
+  when: item.access == 'private'
+
+- set_fact:
+    newpubip: "{{item.address}}"
+  with_items: "{{result|json_query('json.server.ip_addresses.ip_address[*]')}}"
+  when: 
+    - item.access == 'public'
+    - item.family == 'IPv4'
+
+- set_fact:
+    one_fact: "{{item.address}}"
+  with_items: "{{result|json_query('json.server.ip_addresses.ip_address[*]')}}"
+  when: 
+    - item.access == 'public'
+    - item.family == 'IPv4'
+
+- name: Display IP
+  debug: msg="Servers new private IP is {{ newprivip }}, and public IP is {{ newpubip }}."
+
+
+- name: Add route43 DNS entry
+  route53:
+      aws_access_key: "{{ access_key_ID }}"
+      aws_secret_key: "{{ secret_access_key }}"
+      command: create
+      zone: "{{ subdomain }}org.com" # missing the "." as it is appended to subdomain name
+      record: "{{ inventory_hostname }}"
+#     overwrite: yes
+      overwrite: no 
+      type: A
+      ttl: 300
+      value: "{{ newpubip }}"
+      #wait: yes         # We can wait here then we know further playbooks should be able to use this hosts DNS name.
+  tags: dns
+
+- name: Waiting for new host to come up - this can take about 5 minutes sometimes.
+  wait_for: 
+    host: "{{ newprivip }}"
+    port: 22
+    state: started
+    delay: 2
+    timeout: 300
+
+

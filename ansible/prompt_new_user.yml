@@ -1,0 +1,80 @@
+# Usage:
+# Run: ansible-playbook -i production create_new_db_user.yml
+#      OR
+# Run:  ansible-playbook -i production create_new_db_user.yml -e "user=sam" -e "id=21" 
+#      OR give your own password if you want to
+# Run:  ansible-playbook -i production create_new_db_user.yml -e "user=sam" -e "id=21" -e "password=man" 
+
+
+- hosts: db
+  remote_user: ansible
+  gather_facts: no
+  vars_prompt:
+    - name: "id"
+      prompt: "Enter customer ID (id)"
+      private: no
+
+    - name: "user"
+      prompt: "Enter username (user)"
+      private: no
+
+  pre_tasks:
+    - local_action: "command pwgen -s1 32"
+      register: output
+      run_once: true
+
+    - set_fact: 
+        password: "{{output.stdout}}"
+      when: password is not defined
+
+  tasks:
+
+    - name: create_new_db_user
+      debug:
+        var: id, user, password
+
+    - name: Show grant for customr
+      command: mysql -BN -h 127.0.0.1 -e "select db,user,host from mysql.db where user like '%{{ user }}%' "
+      tags: list
+      register: result
+      run_once: true
+
+    - name: "Show if customer already exists and the current databases customer can access"
+      debug:
+        msg: "{{ result.stdout.split('\t') }}"
+      run_once: true
+      when: result.stdout is defined
+      tags: list
+
+    - name: Show who has access to that db
+      command: mysql -BN -h 127.0.0.1 -e "select db,user,host from mysql.db where db = 'data_{{ id }}'"
+      tags: list
+      register: result
+      run_once: true
+
+    - name: "Show who can access this customers database:"
+      debug:
+        msg: "{{ result.stdout.split('\t') }}"
+      run_once: true
+      when: result.stdout is defined
+      tags: list
+
+    - pause:
+        prompt: 'Wnat to continue? Press return to continue. Press Ctrl+c and then "a" to abort'
+
+    - name: Create new RO user on all rep-db servers from lb_rep_host
+      command: mysql -h 127.0.0.1 -e "CREATE USER '{{ user }}'@'{{ lb_rep_host }}' IDENTIFIED BY '{{ password }}';"
+      ignore_errors: True
+      when: result.stdout == "" or force == "yes"
+
+    - name: Change the password for an existing user on lb_rep_host
+      command: mysql -h 127.0.0.1 -e "SET PASSWORD FOR '{{ user }}'@'{{ lb_rep_host }}' = PASSWORD('{{ password }}');"
+      when: result.stdout != "" or force == "yes"
+
+    - name: Grant privileges to databases for the new user...
+      ...
+      ...
+
+    - name: Flush privileges
+      command: mysql -h 127.0.0.1 -e "FLUSH PRIVILEGES;"
+
