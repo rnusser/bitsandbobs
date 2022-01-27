@@ -1,6 +1,6 @@
-- name: Render PlantUML to wiki
-  uses: frederikheld/render-plantuml-to-wiki-action@v1.0.1
-  with:
-    WIKI_TOKEN: ${{ secrets.WIKI_TOKEN }}
-    INPUT_DIR: 'diagrams'
-    OUTPUT_DIR: 'diagrams'
+    - name: Render PlantUML to wiki
+      uses: frederikheld/render-plantuml-to-wiki-action@v1.0.1
+      with:
+        WIKI_TOKEN: ${{ secrets.WIKI_TOKEN }}
+        INPUT_DIR: 'path/to/input_directory'
+        OUTPUT_DIR: 'path/to/output_directory'
