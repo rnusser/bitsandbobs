@@ -1,6 +1,24 @@
 # bitsandbobs
 Some of my code kept where I can find it
 
+
+![mermaid flowchart](diagrams/flow1.png)
+<details>
+  <summary>diagram source</summary>
+```mermaid
+sequenceDiagram
+    participant John
+    
+    Alice ->>+ John: Hello John, how are you?
+    Alice ->>+ John: John, can you hear me?
+    John -->>- Alice: Hi Alice, I can hear you!
+    John-->>-Alice: I feel great!
+            
+```
+</details>
+
+
+
 ![rendered image description](diagrams/diag.png)
 
 <details>
