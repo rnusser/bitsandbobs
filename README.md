@@ -7,8 +7,7 @@ Some of my code kept where I can find it
   <summary>diagram source</summary>
 ```mermaid
 sequenceDiagram
-    participant John
-    
+    autonumber
     Alice ->>+ John: Hello John, how are you?
     Alice ->>+ John: John, can you hear me?
     John -->>- Alice: Hi Alice, I can hear you!
