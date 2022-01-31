@@ -1,7 +1,7 @@
 # bitsandbobs
 Some of my code kept where I can find it
 
-![rendered image description](/diagrams/diag.png)
+![rendered image description](diagrams/diag.png)
 
 <details>
   <summary>diagram source</summary>
