@@ -44,12 +44,4 @@ graph LR
 ```
 </details>
 
-# Create the diagrams localy
-Instead one can save the plantuml in a file with `.plantuml` extension and then run make.
-The Makefile will create the scv image, and an html file making it easy to view the image with a browser. When you are happy you can just insert the diagram into the README.md file:
 
-`![A digram](./diagram.svg)`
-
-OR
-
-`![alt text](https://github.com/[username]/[reponame]/blob/[branch]/image.jpg?raw=true)`
