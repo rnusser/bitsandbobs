@@ -1,6 +1,5 @@
 # Playbook to create new host in Upcloud
 
-
 # please populate variables in new-host/vars/main.yml IF NEEDED
 
 ---
