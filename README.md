@@ -2,28 +2,7 @@
 Some of my code kept where I can find it
 
 
-![mermaid flowchart](diagrams/flow1.png)
-<details>
-  <summary>diagram source</summary>
-```mermaid
-sequenceDiagram
-    autonumber
-    Alice ->>+ John: Hello John, how are you?
-    Alice ->>+ John: John, can you hear me?
-    John -->>- Alice: Hi Alice, I can hear you!
-    John-->>-Alice: I feel great!
-            
-```
-</details>
-
-
-
-![rendered image description](diagrams/diag.png)
-
-<details>
-  <summary>diagram source</summary>
-  This details block is collapsed by default when viewed in GitHub. This hides the mermaid graph definition, while the rendered image
-  linked above is shown. The details tag has to follow the image tag. (newlines allowed)
+## test how mermaid graphs are rendered in github markdown
 
 ```mermaid
 graph LR
@@ -42,6 +21,5 @@ graph LR
     C --> E
     D --> F
 ```
-</details>
 
 
