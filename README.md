@@ -26,7 +26,7 @@ graph LR
 
 ```mermaid
 sequenceDiagram
-    box Purple Alice & John
+    box Gainsboro Alice & John
     participant A
     participant J
     end
