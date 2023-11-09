@@ -25,6 +25,8 @@ graph LR
 ## Attempting to render mermaid with new grouping
 
 ```mermaid
+%%{init: {'theme':'forest'}}%%
+
 sequenceDiagram
     box Gainsboro Alice & John
     participant A
