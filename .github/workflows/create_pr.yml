@@ -1,5 +1,6 @@
-on:
-  create
+name: create pr
+
+on: [ create ]
 
 jobs:
   createPullRequest:
