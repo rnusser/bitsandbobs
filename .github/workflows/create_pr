@@ -1,0 +1,13 @@
+on:
+  create
+
+jobs:
+  createPullRequest:
+    runs-on: ubuntu-latest
+    steps:
+        - uses: actions/checkout
+        - name: create pr
+          run: gh pr create -B main -H ${{ GITHUB_REF }} --title "Documentation to merge" --body 'Created by GitHub action' 
+          env:
+            GH_TOKEN: ${{ github.token }}    
+
