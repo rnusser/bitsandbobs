@@ -8,8 +8,12 @@ jobs:
     steps:
         - name: Checkout
           uses: actions/checkout@v3
+        - name: Set branch name
+          #   run: echo "BRANCH=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_ENV
+          #   run: echo "BRANCH=${GITHUB_HEAD_REF##/}}"
+          run: echo "${{ GITHUB_REF_NAME }}"
         - name: create pr
-          run: gh pr create -B main -H ${{ GITHUB_REF }} --title "Documentation to merge" --body 'Created by GitHub action' 
+          run: gh pr create -B main -H ${{ GITHUB_REF_NAME }} --title "Documentation to merge" --body 'Created by GitHub action' 
           env:
             GH_TOKEN: ${{ github.token }}    
 
