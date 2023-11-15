@@ -5,7 +5,8 @@ jobs:
   createPullRequest:
     runs-on: ubuntu-latest
     steps:
-        - uses: actions/checkout
+        - name: Checkout
+        - uses: actions/checkout@v3
         - name: create pr
           run: gh pr create -B main -H ${{ GITHUB_REF }} --title "Documentation to merge" --body 'Created by GitHub action' 
           env:
