@@ -15,7 +15,7 @@ jobs:
         - name: create pr
           run: |
             gh pr create -B main -H ${GITHUB_REF_NAME} --title "Documentation to merge" --body 'Created by GitHub action' 
-            gh pr merge --admin --merge --delete-branch ${GITHUB_REF_NAME}
+            gh pr merge --admin --merge ${GITHUB_REF_NAME}
           env:
             GH_TOKEN: ${{ github.token }}
 
